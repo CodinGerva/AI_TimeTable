@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='style.css') }}"
+      rel="stylesheet"
+    />
+    <title>Aule</title>
+
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+      }
+      #sidebarMenu {
+        position: fixed;
+        height: 100%;
+      }
+      .sidebar .nav-link {
+        color: #333;
+        font-weight: 500;
+      }
+      .sidebar .nav-link.active {
+        background-color: #007bff;
+        color: white;
+      }
+      .sidebar .nav-link:hover {
+        background-color: #007bff;
+        color: white;
+      }
+      .table-container {
+        margin-top: 20px;
+      }
+      .table {
+        width: 100%;
+        table-layout: auto;
+        margin-bottom: 20px;
+        border-collapse: collapse;
+      }
+      .table th,
+      .table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+      }
+      .table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+      }
+      .action-buttons {
+        display: flex;
+        gap: 5px;
+      }
+      .action-buttons button {
+        padding: 5px 10px;
+        border: none;
+        cursor: pointer;
+      }
+      .action-buttons .btn-edit {
+        background-color: #007bff;
+        color: white;
+      }
+      .action-buttons .btn-delete {
+        background-color: #dc3545;
+        color: white;
+      }
+      .action-buttons .btn-save {
+        background-color: #28a745;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <nav
+          id="sidebarMenu"
+          class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse"
+        >
+          <div class="position-sticky pt-3">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('home') }}">
+                  <i class="bi bi-clock-history"></i>
+                  Orario
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('docenti') }}">
+                  <i class="bi bi-person-fill"></i>
+                  Docenti
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('aule') }}">
+                  <i class="bi bi-building"></i>
+                  Aule
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('classi') }}">
+                  <i class="bi bi-journal-bookmark-fill"></i>
+                  Classi
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('materie') }}">
+                  <i class="bi bi-stack"></i>
+                  Materie
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('gestione_assenze') }}">
+                  <i class="bi bi-calendar-check-fill"></i>
+                  Gestione assenze
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('impostazioni') }}">
+                  <i class="bi bi-gear-fill"></i>
+                  Impostazioni
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+          <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+          >
+            <h1 class="h2">Aule</h1>
+          </div>
+          <!-- Table Content -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>Piano</th>
+                  <th>Materia</th>
+                  <th>Palazzina</th>
+                  <th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody id="aule-content">
+                <!-- Contenuto della tabella caricato dinamicamente -->
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td></td>
+                  <td>
+                    <input type="text" id="new-nome" placeholder="Nome Aula" />
+                  </td>
+                  <td>
+                    <input type="number" id="new-piano" placeholder="Piano" />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      id="new-id-materia"
+                      placeholder="Materia"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      id="new-palazzina"
+                      placeholder="Palazzina"
+                    />
+                  </td>
+                  <td>
+                    <button class="btn btn-success" id="add-aula">
+                      Aggiungi
+                    </button>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- JavaScript Bundle with Popper for Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const auleContent = document.getElementById("aule-content");
+        const addAulaButton = document.getElementById("add-aula");
+
+        function loadAule() {
+          fetch("/api/aule")
+            .then((response) => response.json())
+            .then((data) => {
+              auleContent.innerHTML = "";
+              data.forEach((aula) => {
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                                <td>${aula.id}</td>
+                                <td>${aula.nome}</td>
+                                <td>${aula.piano}</td>
+                                <td>${
+                                  aula.materia_nome
+                                    ? aula.materia_nome
+                                    : "non specifica"
+                                }</td>
+                                <td>${aula.palazzina}</td>
+                                <td class="action-buttons">
+                                    <button class="btn-edit">Modifica</button>
+                                    <button class="btn-delete">Elimina</button>
+                                </td>
+                            `;
+
+                // Aggiungi event listeners per i pulsanti
+                row
+                  .querySelector(".btn-edit")
+                  .addEventListener("click", () => toggleEdit(row, aula));
+                row
+                  .querySelector(".btn-delete")
+                  .addEventListener("click", () => deleteAula(aula.id));
+
+                auleContent.appendChild(row);
+              });
+            })
+            .catch((error) => console.error("Error fetching aule:", error));
+        }
+
+        function toggleEdit(row, aula) {
+          const isEditing = row.classList.contains("editing");
+          if (isEditing) {
+            const nome = row.querySelector(".input-nome").value;
+            const piano = row.querySelector(".input-piano").value;
+            const idMateria = row.querySelector(".input-id-materia").value;
+            const palazzina = row.querySelector(".input-palazzina").value;
+
+            fetch(`/api/aule/${aula.id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                nome: nome,
+                piano: piano,
+                id_materia: idMateria,
+                palazzina: palazzina,
+              }),
+            })
+              .then((response) => {
+                if (response.ok) {
+                  loadAule();
+                } else {
+                  console.error("Error updating aula:", response.statusText);
+                }
+              })
+              .catch((error) => console.error("Error updating aula:", error));
+          } else {
+            row.classList.add("editing");
+            row.innerHTML = `
+                        <td>${aula.id}</td>
+                        <td><input type="text" class="input-nome" value="${aula.nome}" /></td>
+                        <td><input type="number" class="input-piano" value="${aula.piano}" /></td>
+                        <td><input type="text" class="input-id-materia" value="${aula.id_materia}" /></td>
+                        <td><input type="text" class="input-palazzina" value="${aula.palazzina}" /></td>
+                        <td class="action-buttons">
+                            <button class="btn-save"><i class="bi bi-check"></i></button>
+                            <button class="btn-delete">Elimina</button>
+                        </td>
+                    `;
+
+            row
+              .querySelector(".btn-save")
+              .addEventListener("click", () => toggleEdit(row, aula));
+            row
+              .querySelector(".btn-delete")
+              .addEventListener("click", () => deleteAula(aula.id));
+          }
+        }
+
+        function addAula() {
+          const nome = document.getElementById("new-nome").value;
+          const piano = document.getElementById("new-piano").value;
+          const idMateria = document.getElementById("new-id-materia").value;
+          const palazzina = document.getElementById("new-palazzina").value;
+
+          fetch("/api/aule", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              nome: nome,
+              piano: piano,
+              id_materia: idMateria,
+              palazzina: palazzina,
+            }),
+          })
+            .then((response) => {
+              if (response.ok) {
+                loadAule();
+              } else {
+                console.error("Error adding aula:", response.statusText);
+              }
+            })
+            .catch((error) => console.error("Error adding aula:", error));
+        }
+
+        function deleteAula(id) {
+          fetch(`/api/aule/${id}`, {
+            method: "DELETE",
+          })
+            .then((response) => {
+              if (response.ok) {
+                loadAule();
+              } else {
+                console.error("Error deleting aula:", response.statusText);
+              }
+            })
+            .catch((error) => console.error("Error deleting aula:", error));
+        }
+
+        addAulaButton.addEventListener("click", addAula);
+
+        loadAule();
+      });
+    </script>
+  </body>
+</html>

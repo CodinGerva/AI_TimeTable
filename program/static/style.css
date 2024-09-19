@@ -1,0 +1,33 @@
+body {
+    font-family: "Roboto", sans-serif;
+  }
+  
+  .sidebar .nav-link {
+    color: #333;
+    font-weight: 500;
+  }
+  
+  .sidebar .nav-link.active {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .sidebar .nav-link:hover {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .content-section {
+    margin-top: 20px;
+  }
+  
+  .list-group-item {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  
+  .list-group-item:hover {
+    background-color: #e2e6ea;
+  }

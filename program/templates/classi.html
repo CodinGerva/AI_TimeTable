@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='style.css') }}"
+      rel="stylesheet"
+    />
+    <title>Classi</title>
+
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+      }
+      #sidebarMenu {
+        position: fixed;
+        height: 100%;
+      }
+      .sidebar .nav-link {
+        color: #333;
+        font-weight: 500;
+      }
+      .sidebar .nav-link.active {
+        background-color: #007bff;
+        color: white;
+      }
+      .sidebar .nav-link:hover {
+        background-color: #007bff;
+        color: white;
+      }
+      .table-container {
+        margin-top: 20px;
+      }
+      .table {
+        width: 100%;
+        table-layout: auto;
+        margin-bottom: 20px;
+        border-collapse: collapse;
+      }
+      .table th,
+      .table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+      }
+      .table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+      }
+      .action-buttons {
+        display: flex;
+        gap: 5px;
+      }
+      .action-buttons button {
+        padding: 5px 10px;
+        border: none;
+        cursor: pointer;
+      }
+      .action-buttons .btn-edit {
+        background-color: #007bff;
+        color: white;
+      }
+      .action-buttons .btn-delete {
+        background-color: #dc3545;
+        color: white;
+      }
+      .action-buttons .btn-save {
+        background-color: #28a745;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <nav
+          id="sidebarMenu"
+          class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse"
+        >
+          <div class="position-sticky pt-3">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('home') }}">
+                  <i class="bi bi-clock-history"></i> Orario
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('docenti') }}">
+                  <i class="bi bi-person-fill"></i> Docenti
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('aule') }}">
+                  <i class="bi bi-journal-bookmark-fill"></i> Aule
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('classi') }}">
+                  <i class="bi bi-building"></i> Classi
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('materie') }}">
+                  <i class="bi bi-stack"></i> Materie
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('gestione_assenze') }}">
+                  <i class="bi bi-calendar-check-fill"></i>
+                  Gestione assenze
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('impostazioni') }}">
+                  <i class="bi bi-gear-fill"></i>
+                  Impostazioni
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+          <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+          >
+            <h1 class="h2">Classi</h1>
+          </div>
+          <!-- Table Content -->
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>Indirizzo</th>
+                  <th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody id="classi-content">
+                <!-- Contenuto della tabella caricato dinamicamente -->
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td></td>
+                  <td>
+                    <input type="text" id="new-nome" placeholder="Nome" />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      id="new-indirizzo"
+                      placeholder="Indirizzo"
+                    />
+                  </td>
+                  <td>
+                    <button class="btn btn-success" id="add-classe">
+                      Aggiungi
+                    </button>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- JavaScript Bundle with Popper for Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const classiContent = document.getElementById("classi-content");
+        const addClasseButton = document.getElementById("add-classe");
+
+        function loadClassi() {
+          fetch("/api/classi")
+            .then((response) => response.json())
+            .then((data) => {
+              classiContent.innerHTML = "";
+              data.forEach((classe) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                <td>${classe.id}</td>
+                <td>${classe.nome}</td>
+                <td>${classe.indirizzo}</td>
+                <td class="action-buttons">
+                  <button class="btn-edit">Modifica</button>
+                  <button class="btn-delete">Elimina</button>
+                </td>
+              `;
+                row
+                  .querySelector(".btn-edit")
+                  .addEventListener("click", () => toggleEdit(row, classe));
+                row
+                  .querySelector(".btn-delete")
+                  .addEventListener("click", () => deleteClasse(classe.id));
+                classiContent.appendChild(row);
+              });
+            })
+            .catch((error) => console.error("Error fetching classi:", error));
+        }
+
+        function toggleEdit(row, classe) {
+          const isEditing = row.classList.contains("editing");
+          if (isEditing) {
+            const nome = row.querySelector(".input-nome").value;
+            const indirizzo = row.querySelector(".input-indirizzo").value;
+
+            fetch(`/api/classi/${classe.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ nome: nome, id_indirizzo: indirizzo }),
+            })
+              .then((response) => {
+                if (response.ok) {
+                  loadClassi();
+                } else {
+                  console.error("Error updating classe:", response.statusText);
+                }
+              })
+              .catch((error) => console.error("Error updating classe:", error));
+          } else {
+            row.classList.add("editing");
+            row.innerHTML = `
+            <td>${classe.id}</td>
+            <td><input type="text" class="input-nome" value="${classe.nome}" /></td>
+            <td><input type="text" class="input-indirizzo" value="${classe.indirizzo}" /></td>
+            <td class="action-buttons">
+              <button class="btn-save"><i class="bi bi-check"></i></button>
+              <button class="btn-delete">Elimina</button>
+            </td>
+          `;
+            row
+              .querySelector(".btn-save")
+              .addEventListener("click", () => toggleEdit(row, classe));
+            row
+              .querySelector(".btn-delete")
+              .addEventListener("click", () => deleteClasse(classe.id));
+          }
+        }
+
+        function addClasse() {
+          const nome = document.getElementById("new-nome").value;
+          const indirizzo = document.getElementById("new-indirizzo").value;
+
+          fetch("/api/classi", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nome: nome, id_indirizzo: indirizzo }),
+          })
+            .then((response) => {
+              if (response.ok) {
+                loadClassi();
+              } else {
+                console.error("Error adding classe:", response.statusText);
+              }
+            })
+            .catch((error) => console.error("Error adding classe:", error));
+        }
+
+        function deleteClasse(id) {
+          fetch(`/api/classi/${id}`, {
+            method: "DELETE",
+          })
+            .then((response) => {
+              if (response.ok) {
+                loadClassi();
+              } else {
+                console.error("Error deleting classe:", response.statusText);
+              }
+            })
+            .catch((error) => console.error("Error deleting classe:", error));
+        }
+
+        addClasseButton.addEventListener("click", addClasse);
+
+        loadClassi();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='style.css') }}"
+      rel="stylesheet"
+    />
+    <title>Gestione Assenze</title>
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+      }
+      #sidebarMenu {
+        position: fixed;
+        height: 100%;
+      }
+      .sidebar .nav-link {
+        color: #333;
+        font-weight: 500;
+      }
+      .sidebar .nav-link.active {
+        background-color: #007bff;
+        color: white;
+      }
+      .sidebar .nav-link:hover {
+        background-color: #007bff;
+        color: white;
+      }
+      .form-container {
+        margin-top: 20px;
+      }
+      .form-control {
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <nav
+          id="sidebarMenu"
+          class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse"
+        >
+          <div class="position-sticky pt-3">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('home') }}">
+                  <i class="bi bi-clock-history"></i>
+                  Orario
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('docenti') }}"
+                  ><i class="bi bi-person-fill"></i> Docenti</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('aule') }}"
+                  ><i class="bi bi-building"></i> Aule</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('classi') }}"
+                  ><i class="bi bi-journal-bookmark-fill"></i> Classi</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('materie') }}"
+                  ><i class="bi bi-stack"></i> Materie</a
+                >
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  href="{{ url_for('gestione_assenze') }}"
+                  ><i class="bi bi-calendar-check-fill"></i> Gestione assenze</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('impostazioni') }}">
+                  <i class="bi bi-gear-fill"></i>
+                  Impostazioni
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+          <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+          >
+            <h1 class="h2">Gestione Assenze</h1>
+          </div>
+          <!-- Form Content -->
+          <div class="form-container">
+            <form id="absence-form">
+              <div class="mb-3">
+                <label for="day-select" class="form-label"
+                  >Giorno della Settimana</label
+                >
+                <select class="form-select" id="day-select" required>
+                  <option value="Monday">Lunedì</option>
+                  <option value="Tuesday">Martedì</option>
+                  <option value="Wednesday">Mercoledì</option>
+                  <option value="Thursday">Giovedì</option>
+                  <option value="Friday">Venerdì</option>
+                  <option value="Saturday">Sabato</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="docente-select" class="form-label"
+                  >Docente Assente</label
+                >
+                <select
+                  class="form-select"
+                  id="docente-select"
+                  required
+                ></select>
+              </div>
+              <button type="submit" class="btn btn-primary">
+                Trova Sostituto
+              </button>
+            </form>
+            <div id="substitute-results" class="mt-3"></div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const docenteSelect = document.getElementById("docente-select");
+        const absenceForm = document.getElementById("absence-form");
+        const substituteResults = document.getElementById("substitute-results");
+
+        function loadDocenti() {
+          fetch("/api/docenti")
+            .then((response) => response.json())
+            .then((data) => {
+              docenteSelect.innerHTML = "";
+              data.forEach((docente) => {
+                const option = document.createElement("option");
+                option.value = docente.id;
+                option.textContent = `${docente.nome} ${docente.cognome}`;
+                docenteSelect.appendChild(option);
+              });
+            })
+            .catch((error) => console.error("Error fetching docenti:", error));
+        }
+
+        absenceForm.addEventListener("submit", function (event) {
+          event.preventDefault();
+          const day = document.getElementById("day-select").value;
+          const docenteId = docenteSelect.value;
+          fetch(`/api/find_substitute?day=${day}&docente_id=${docenteId}`)
+            .then((response) => response.json())
+            .then((data) => {
+              substituteResults.innerHTML = "<h3>Risultati dei Sostituti:</h3>";
+              data.forEach((result) => {
+                const div = document.createElement("div");
+                div.innerHTML = `<strong>Ora:</strong> ${result.ora} - <strong>Sostituto:</strong> ${result.sostituto}`;
+                substituteResults.appendChild(div);
+              });
+            })
+            .catch((error) =>
+              console.error("Error finding substitute:", error)
+            );
+        });
+
+        loadDocenti();
+      });
+    </script>
+  </body>
+</html>
